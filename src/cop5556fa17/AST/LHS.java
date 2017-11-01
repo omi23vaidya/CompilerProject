@@ -9,6 +9,7 @@ public class LHS extends ASTNode{
 	public final Index index;
 	public boolean isCartesian;
 	public Type newType;
+	public Declaration dec;
 
 
 
