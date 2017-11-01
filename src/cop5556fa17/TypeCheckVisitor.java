@@ -1,6 +1,7 @@
 package cop5556fa17;
 
 import cop5556fa17.Scanner.Token;
+import cop5556fa17.TypeUtils.Type;
 import cop5556fa17.AST.ASTNode;
 import cop5556fa17.AST.ASTVisitor;
 import cop5556fa17.AST.Declaration_Image;
@@ -43,6 +44,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		}		
 		
 
+		SymbolTable symbolTableObj = new SymbolTable();
 	
 	/**
 	 * The program name is only used for naming the class.  It does not rule out
@@ -63,7 +65,22 @@ public class TypeCheckVisitor implements ASTVisitor {
 			Declaration_Variable declaration_Variable, Object arg)
 			throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		if(declaration_Variable.name == null)
+		{
+			symbolTableObj.insert(declaration_Variable.name, declaration_Variable);
+			declaration_Variable.newType = TypeUtils.getType(declaration_Variable.type);
+			if(declaration_Variable.e != null)
+			{
+				if(declaration_Variable.newType != declaration_Variable.e.newType)
+					throw new SemanticException(declaration_Variable.firstToken,
+							"Error in second requirement of visitDeclaration_Variable");
+			}
+		}
+		else throw new SemanticException(declaration_Variable.firstToken,
+				"Error in first Requirement of visitDeclaration_Variable");
+		
+		return declaration_Variable;
 	}
 
 	@Override
@@ -106,7 +123,29 @@ public class TypeCheckVisitor implements ASTVisitor {
 	public Object visitDeclaration_Image(Declaration_Image declaration_Image,
 			Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		if(symbolTableObj.lookupType(declaration_Image.name) == null)
+		{
+			symbolTableObj.insert(declaration_Image.name, declaration_Image);
+			declaration_Image.newType = Type.IMAGE;
+			if(declaration_Image.xSize != null)
+			{
+				if(declaration_Image.ySize != null
+						&& declaration_Image.xSize.newType == Type.INTEGER
+						&& declaration_Image.ySize.newType == Type.INTEGER)
+				{
+					;//do nothing as it is correct
+				}
+				else
+					throw new SemanticException(declaration_Image.firstToken,
+							"Error in visitDeclaration_Image in second Requirement");
+			}
+		}
+		else
+			throw new SemanticException(declaration_Image.firstToken,
+					"Error in visitDeclaration_Image in first Requirement");
+		
+		return declaration_Image;
 	}
 
 	@Override
@@ -137,7 +176,21 @@ public class TypeCheckVisitor implements ASTVisitor {
 			Declaration_SourceSink declaration_SourceSink, Object arg)
 			throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		if(symbolTableObj.lookupType(declaration_SourceSink.name) == null)
+		{
+			symbolTableObj.insert(declaration_SourceSink.name, declaration_SourceSink);
+			declaration_SourceSink.newType = TypeUtils.getType(declaration_SourceSink.forTokenType);
+			if(declaration_SourceSink.source.newType != declaration_SourceSink.newType)
+			{
+				throw new SemanticException(declaration_SourceSink.firstToken,
+						"Error in visitDeclaration_SourceSink in 2nd requirement");
+			}
+		}
+		else throw new SemanticException(declaration_SourceSink.firstToken,
+				"Error in first requirement of visitDeclaration_SourceSink");
+		
+		return declaration_SourceSink;
 	}
 
 	@Override
@@ -175,21 +228,57 @@ public class TypeCheckVisitor implements ASTVisitor {
 	public Object visitStatement_Out(Statement_Out statement_Out, Object arg)
 			throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		statement_Out.setDec(symbolTableObj.lookupDec(statement_Out.name));
+		if(symbolTableObj.lookupDec(statement_Out.name) != null)
+			; //correct -- so do nothing
+		else
+			throw new SemanticException(statement_Out.firstToken,
+					"Error in visitStatement_Out -- name Declaration is null");
+		
+		if(((symbolTableObj.lookupType(statement_Out.name) == Type.INTEGER || symbolTableObj.lookupType(statement_Out.name) == Type.BOOLEAN) 
+				&& statement_Out.sink.newType == Type.SCREEN) 
+			|| symbolTableObj.lookupType(statement_Out.name) == Type.IMAGE && (statement_Out.sink.newType == Type.FILE || statement_Out.sink.newType == Type.SCREEN))
+		{
+			; //do nothing as it satisfies everything
+		}
+		else
+			throw new SemanticException(statement_Out.firstToken, 
+					"Error in visitStatement_Out in second require");
+		
+		return statement_Out;
 	}
 
 	@Override
 	public Object visitStatement_In(Statement_In statement_In, Object arg)
 			throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		statement_In.setDec(symbolTableObj.lookupDec(statement_In.name));
+		if(symbolTableObj.lookupDec(statement_In.name) != null
+				&& symbolTableObj.lookupType(statement_In.name) == statement_In.source.newType)
+		{
+			;//do nothing as condition satisfies
+		}
+		else throw new SemanticException(statement_In.firstToken,
+				"Error in visitStatement_In -- name not declared or name type and source type not equal");
+		
+		return statement_In;
 	}
 
 	@Override
 	public Object visitStatement_Assign(Statement_Assign statement_Assign,
 			Object arg) throws Exception {
 		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		if(statement_Assign.lhs.newType == statement_Assign.e.newType)
+		{
+			statement_Assign.setCartesian(statement_Assign.lhs.isCartesian);
+		}
+		else throw new SemanticException(statement_Assign.firstToken,
+				"LHS type and Expression Type not equal");
+		
+		return statement_Assign;
 	}
 
 	@Override
