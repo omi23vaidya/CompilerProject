@@ -107,9 +107,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if(exp1!=null)
 			exp1.visit(this, arg);
 		
-		if((exp0.newType == exp1.newType)
-				&& expression_Binary.newType != null)
-		{
+		
 			if(expression_Binary.op == Kind.OP_EQ || expression_Binary.op == Kind.OP_NEQ)
 			{
 				expression_Binary.newType = Type.BOOLEAN;
@@ -138,6 +136,10 @@ public class TypeCheckVisitor implements ASTVisitor {
 				expression_Binary.newType = Type.INTEGER;
 			}
 			else expression_Binary.newType = null;
+		if((exp0.newType == exp1.newType)
+					&& expression_Binary.newType != null)
+		{
+			;//do nothing
 		}
 		else throw new SemanticException(expression_Binary.firstToken, 
 				"Error in visitExpression_Binary in -- e0 and e1 types not equal or expression.binary is null");
@@ -197,8 +199,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 				index.setCartesian(!(((Expression_PredefinedName)exp0).kind == Kind.KW_r 
 						&& ((Expression_PredefinedName)exp1).kind == Kind.KW_a));
 			}
-			else throw new SemanticException(index.firstToken, 
-					"Error in visitIndex -- Expressions in Index not of Expression_PredefinedName");
+			else index.setCartesian(true);
 			
 		}
 		else throw new SemanticException(index.firstToken, "Either of the Expressions do not have Type as Integer");
@@ -562,7 +563,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 		{
 			lhs.dec = symbolTableObj.lookupDec(lhs.name);
 			lhs.newType = lhs.dec.newType;
-			lhs.isCartesian = i.isCartesian();
+			if(i!=null)
+				lhs.isCartesian = i.isCartesian();
 		}
 		else throw new SemanticException(lhs.firstToken, "Error in visitLHS because lhs.name lookup returned a null from symbolTable");
 		
