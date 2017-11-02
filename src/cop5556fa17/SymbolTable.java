@@ -11,7 +11,7 @@ public class SymbolTable {
 	
 	public Type lookupType(String name)
 	{
-		return symbolTable.get(name).newType;
+		return symbolTable.containsKey(name) ? symbolTable.get(name).newType : null ;
 	}
 	
 	public Declaration lookupDec(String name)
@@ -22,5 +22,13 @@ public class SymbolTable {
 	public void insert(String name, Declaration value)
 	{
 		symbolTable.put(name, value);
+	}
+	
+	public boolean contains(String name)
+	{
+		 if(symbolTable.containsKey(name))
+			return true;
+		 else 
+			return false;
 	}
 }
