@@ -217,8 +217,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		{
 			i.visit(this, arg);			
 		}
-		if(symbolTableObj.lookupType(expression_PixelSelector.name) != null 
-				&& symbolTableObj.lookupType(expression_PixelSelector.name) !=null)
+		if(symbolTableObj.symbolTable.containsKey(expression_PixelSelector.name))
 		{
 			if(symbolTableObj.lookupType(expression_PixelSelector.name) == Type.IMAGE)
 			{
@@ -373,7 +372,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 			throws Exception {
 		// TODO Auto-generated method stub
 		//throw new UnsupportedOperationException();
-		if(symbolTableObj.lookupType(source_Ident.name) != null)
+		if(symbolTableObj.symbolTable.containsKey(source_Ident.name))
 		{
 			source_Ident.newType = symbolTableObj.lookupType(source_Ident.name);
 		}
@@ -487,7 +486,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		else
 			throw new SemanticException(statement_Out.firstToken,
 					"Error in visitStatement_Out -- name Declaration is null");
-		if(symbolTableObj.lookupType(statement_Out.name) != null)
+		if(symbolTableObj.symbolTable.containsKey(statement_Out.name))
 		{
 		if(((symbolTableObj.lookupType(statement_Out.name) == Type.INTEGER || symbolTableObj.lookupType(statement_Out.name) == Type.BOOLEAN) 
 				&& s.newType == Type.SCREEN) 
@@ -585,7 +584,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 			throws Exception {
 		// TODO Auto-generated method stub
 		//throw new UnsupportedOperationException();
-		if(symbolTableObj.lookupType(sink_Ident.name)!=null)
+		if(symbolTableObj.symbolTable.containsKey(sink_Ident.name))
 		{
 		sink_Ident.newType = symbolTableObj.lookupType(sink_Ident.name);
 		if(sink_Ident.newType == Type.FILE)
@@ -615,7 +614,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 			Object arg) throws Exception {
 		// TODO Auto-generated method stub
 		//throw new UnsupportedOperationException();
-		if(symbolTableObj.lookupType(expression_Ident.name)!=null)
+		if(symbolTableObj.symbolTable.containsKey(expression_Ident.name))
 		{
 			expression_Ident.newType = symbolTableObj.lookupType(expression_Ident.name);
 		}
