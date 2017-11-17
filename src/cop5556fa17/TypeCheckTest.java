@@ -110,7 +110,6 @@ public class TypeCheckTest {
 	 String input = "prog k = 42;";
 	 thrown.expect(SemanticException.class);
 	 typeCheck(input);
-	 }
-
-
+	 }	 
+	
 }
