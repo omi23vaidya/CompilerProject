@@ -37,6 +37,7 @@ import cop5556fa17.AST.Source_Ident;
 import cop5556fa17.AST.Source_StringLiteral;
 import cop5556fa17.AST.Statement_In;
 import cop5556fa17.AST.Statement_Out;
+import cop5556fa17.Scanner.Kind;
 import cop5556fa17.AST.Statement_Assign;
 //import cop5556fa17.image.ImageFrame;
 //import cop5556fa17.image.ImageSupport;
@@ -73,13 +74,13 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	/** Indicates whether genPrint and genPrintTOS should generate code. */
 	final boolean DEVEL;
 	final boolean GRADE;
-	
+
 
 
 	@Override
 	public Object visitProgram(Program program, Object arg) throws Exception {
 		cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
-		className = program.name;  
+		className = program.name;
 		classDesc = "L" + className + ";";
 		String sourceFileName = (String) arg;
 		cw.visit(52, ACC_PUBLIC + ACC_SUPER, className, null, "java/lang/Object", null);
@@ -87,10 +88,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// create main method
 		mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
 		// initialize
-		mv.visitCode();		
+		mv.visitCode();
 		//add label before first instruction
 		Label mainStart = new Label();
-		mv.visitLabel(mainStart);		
+		mv.visitLabel(mainStart);
 		// if GRADE, generates code to add string to log
 		CodeGenUtils.genLog(GRADE, mv, "entering main");
 
@@ -103,14 +104,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 		//generates code to add string to log
 		CodeGenUtils.genLog(GRADE, mv, "leaving main");
-		
+
 		//adds the required (by the JVM) return statement to main
 		mv.visitInsn(RETURN);
-		
+
 		//adds label at end of code
 		Label mainEnd = new Label();
 		mv.visitLabel(mainEnd);
-		
+
 		//handles parameters and local variables of main. Right now, only args
 		mv.visitLocalVariable("args", "[Ljava/lang/String;", null, mainStart, mainEnd, 0);
 
@@ -122,10 +123,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//The generated classfile will not be correct, but you will at least be
 		//able to see what is in it.
 		mv.visitMaxs(0, 0);
-		
+
 		//terminate construction of main method
 		mv.visitEnd();
-		
+
 		//terminate class construction
 		cw.visitEnd();
 
@@ -135,24 +136,138 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitDeclaration_Variable(Declaration_Variable declaration_Variable, Object arg) throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
+		// TODO
+		//throw new UnsupportedOperationException();
+		String fieldName = declaration_Variable.name;
+		String fieldType = declaration_Variable.type.kind == Kind.KW_int ? "I" : "Z";
+		Object initValue = new Integer(0); //****TODO: What to do for boolean??
+		FieldVisitor fv = cw.visitField(ACC_STATIC, fieldName, fieldType, null, initValue);
+		fv.visitEnd();
+
+		if(declaration_Variable.e != null)
+		{
+			declaration_Variable.e.visit(this, arg);
+			mv.visitFieldInsn(PUTSTATIC, className, fieldName, fieldType);
+		}
+		return null;
 	}
 
 	@Override
 	public Object visitExpression_Binary(Expression_Binary expression_Binary, Object arg) throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, expression_Binary.getType());
-//		return null;
+		// TODO
+		//throw new UnsupportedOperationException();
+		expression_Binary.e0.visit(this, arg);
+		expression_Binary.e1.visit(this, arg);
+
+		switch(expression_Binary.op)
+		{
+		case OP_EQ:
+			Label l1 = new Label();
+			Label l2 = new Label();
+			mv.visitJumpInsn(IF_ICMPEQ, l1);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l2);
+			mv.visitLabel(l1);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l2); //TODO: check this opcode
+			break;
+
+		case OP_NEQ:
+			Label l3 = new Label();
+			Label l4 = new Label();
+			mv.visitJumpInsn(IF_ICMPNE, l3);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l4);
+			mv.visitLabel(l3);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l4); //TODO: check this opcode
+			break;
+
+		case OP_GE:
+			Label l5 = new Label();
+			Label l6 = new Label();
+			mv.visitJumpInsn(IF_ICMPGE, l5);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l6);
+			mv.visitLabel(l5);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l6); //TODO: check this opcode
+			break;
+
+
+		case OP_LE:
+			Label l7 = new Label();
+			Label l8 = new Label();
+			mv.visitJumpInsn(IF_ICMPLE, l7);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l8);
+			mv.visitLabel(l7);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l8); //TODO: check this opcode
+			break;
+
+
+		case OP_AND:
+			mv.visitInsn(IAND);
+			break;
+
+		case OP_OR:
+			mv.visitInsn(IOR);
+			break;
+
+		case OP_PLUS:
+			mv.visitInsn(IADD);
+			break;
+
+		case OP_MINUS:
+			mv.visitInsn(ISUB);
+			break;
+
+		case OP_TIMES:
+			mv.visitInsn(IMUL);
+			break;
+
+		case OP_DIV:
+			mv.visitInsn(IDIV);
+			break;
+
+		case OP_MOD:
+			mv.visitInsn(IREM);
+			break;
+
+		default:
+			break;
+		}
+
+		CodeGenUtils.genLogTOS(GRADE, mv, expression_Binary.getType());
+		return null;
 	}
 
 	@Override
 	public Object visitExpression_Unary(Expression_Unary expression_Unary, Object arg) throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, expression_Unary.getType());
-//		return null;
+		// TODO
+		//throw new UnsupportedOperationException();
+		expression_Unary.visit(this, arg);
+		switch(expression_Unary.op)
+		{
+			case OP_EXCL:
+				mv.visitInsn(INEG);
+				break;
+
+			case OP_PLUS:
+				//mv.visitInsn(IADD); //TODO: Check this. What to do for plus and minus in unary
+				break;
+
+			case OP_MINUS:
+				//mv.visitInsn(ISUB);
+				break;
+
+			default:
+				break;
+		}
+
+		CodeGenUtils.genLogTOS(GRADE, mv, expression_Unary.getType());
+		return null;
 	}
 
 	// generate code to leave the two values on the stack
@@ -172,10 +287,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitExpression_Conditional(Expression_Conditional expression_Conditional, Object arg)
 			throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, expression_Conditional.trueExpression.getType());
-//		return null;
+		// TODO
+		//throw new UnsupportedOperationException();
+		expression_Conditional.condition.visit(this, arg);
+		mv.visitLdcInsn(new Boolean(true));
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitJumpInsn(IF_ICMPEQ, l1);
+		expression_Conditional.falseExpression.visit(this, arg);
+		mv.visitJumpInsn(GOTO, l2);
+		mv.visitLabel(l1);
+		expression_Conditional.trueExpression.visit(this, arg);
+		mv.visitLabel(l2);
+
+		CodeGenUtils.genLogTOS(GRADE, mv, expression_Conditional.trueExpression.getType());
+		return null;
 	}
 
 
@@ -184,21 +310,25 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// TODO HW6
 		throw new UnsupportedOperationException();
 	}
-	
-  
+
+
 	@Override
 	public Object visitSource_StringLiteral(Source_StringLiteral source_StringLiteral, Object arg) throws Exception {
 		// TODO HW6
 		throw new UnsupportedOperationException();
 	}
 
-	
+
 
 	@Override
 	public Object visitSource_CommandLineParam(Source_CommandLineParam source_CommandLineParam, Object arg)
 			throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
+		// TODO
+		//throw new UnsupportedOperationException();
+		mv.visitVarInsn(ALOAD, 0);
+		source_CommandLineParam.paramNum.visit(this, arg);
+		mv.visitInsn(AALOAD);
+		return null;
 	}
 
 	@Override
@@ -214,15 +344,16 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// TODO HW6
 		throw new UnsupportedOperationException();
 	}
-	
+
 
 
 	@Override
 	public Object visitExpression_IntLit(Expression_IntLit expression_IntLit, Object arg) throws Exception {
-		// TODO 
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, Type.INTEGER);
-//		return null;
+		// TODO
+		//throw new UnsupportedOperationException();
+		mv.visitLdcInsn(new Integer(expression_IntLit.value));
+		CodeGenUtils.genLogTOS(GRADE, mv, Type.INTEGER);
+		return null;
 	}
 
 	@Override
@@ -253,32 +384,64 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatement_Out(Statement_Out statement_Out, Object arg) throws Exception {
 		// TODO in HW5:  only INTEGER and BOOLEAN
 		// TODO HW6 remaining cases
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		String fieldName = statement_Out.name;
+		String fieldType = statement_Out.getDec().newType == Type.INTEGER ? "I" : "Z";
+		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "("+fieldType+")V", false);
+		return null;
+		//TODO: Check invokevirtual
 	}
 
 	/**
 	 * Visit source to load rhs, which will be a String, onto the stack
-	 * 
+	 *
 	 *  In HW5, you only need to handle INTEGER and BOOLEAN
-	 *  Use java.lang.Integer.parseInt or java.lang.Boolean.parseBoolean 
-	 *  to convert String to actual type. 
-	 *  
+	 *  Use java.lang.Integer.parseInt or java.lang.Boolean.parseBoolean
+	 *  to convert String to actual type.
+	 *
 	 *  TODO HW6 remaining types
 	 */
 	@Override
 	public Object visitStatement_In(Statement_In statement_In, Object arg) throws Exception {
 		// TODO (see comment )
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		String fieldName = statement_In.name;
+
+		statement_In.source.visit(this, arg);
+		if(statement_In.source.newType == Type.INTEGER)
+		{
+			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
+			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "I");
+		}
+		else
+		{
+			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "parseBoolean", "(Ljava/lang/String;)Z", false);
+			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Z");
+		}
+		return null;
 	}
 
-	
+
 	/**
 	 * In HW5, only handle INTEGER and BOOLEAN types.
 	 */
 	@Override
 	public Object visitStatement_Assign(Statement_Assign statement_Assign, Object arg) throws Exception {
 		//TODO  (see comment)
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		if(statement_Assign.e.newType == Type.INTEGER || statement_Assign.e.newType == Type.BOOLEAN)
+		{
+			String fieldType = statement_Assign.e.newType == Type.INTEGER ? "I" : "Z";
+			String fieldName = statement_Assign.lhs.name;
+			if(statement_Assign.lhs.newType == statement_Assign.e.newType)
+			{
+				statement_Assign.e.visit(this, arg);
+				mv.visitFieldInsn(PUTSTATIC, className, fieldName, fieldType);
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -287,9 +450,15 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitLHS(LHS lhs, Object arg) throws Exception {
 		//TODO  (see comment)
-		throw new UnsupportedOperationException();
+		//throw new UnsupportedOperationException();
+		String fieldName = lhs.name;
+		if(lhs.newType == Type.INTEGER || lhs.newType == Type.BOOLEAN)
+		{
+			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Ljava/lang/String;");
+		}
+		return null;
 	}
-	
+
 
 	@Override
 	public Object visitSink_SCREEN(Sink_SCREEN sink_SCREEN, Object arg) throws Exception {
@@ -306,18 +475,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitExpression_BooleanLit(Expression_BooleanLit expression_BooleanLit, Object arg) throws Exception {
 		//TODO
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, Type.BOOLEAN);
-//		return null;
+		//throw new UnsupportedOperationException();
+		mv.visitLdcInsn(new Boolean(expression_BooleanLit.value));
+		CodeGenUtils.genLogTOS(GRADE, mv, Type.BOOLEAN);
+		return null;
 	}
 
 	@Override
 	public Object visitExpression_Ident(Expression_Ident expression_Ident,
 			Object arg) throws Exception {
 		//TODO
-		throw new UnsupportedOperationException();
-//		CodeGenUtils.genLogTOS(GRADE, mv, expression_Ident.getType());
-//		return null;
+		//throw new UnsupportedOperationException();
+		String fieldName = expression_Ident.name;
+		mv.visitFieldInsn(GETSTATIC, className, fieldName, "Ljava/lang/String;");
+		CodeGenUtils.genLogTOS(GRADE, mv, expression_Ident.getType());
+		return null;
 	}
 
 }
