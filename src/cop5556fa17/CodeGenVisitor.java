@@ -247,11 +247,26 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitExpression_Unary(Expression_Unary expression_Unary, Object arg) throws Exception {
 		// TODO
 		//throw new UnsupportedOperationException();
-		expression_Unary.visit(this, arg);
+		expression_Unary.e.visit(this, arg);
+
 		switch(expression_Unary.op)
 		{
 			case OP_EXCL:
-				mv.visitInsn(INEG);
+				if(expression_Unary.newType == Type.INTEGER)
+					mv.visitInsn(INEG);
+				else if(expression_Unary.newType == Type.BOOLEAN)
+				{
+					Label l1 = new Label();
+					Label l2 = new Label();
+					mv.visitLdcInsn(new Boolean(true));
+					mv.visitJumpInsn(IF_ICMPEQ, l1);
+					mv.visitLdcInsn(new Boolean(false));
+					mv.visitJumpInsn(GOTO, l2);
+					mv.visitLabel(l1);
+					mv.visitLdcInsn(new Boolean(true));
+					mv.visitLabel(l2);
+				}
+
 				break;
 
 			case OP_PLUS:
@@ -259,7 +274,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				break;
 
 			case OP_MINUS:
-				//mv.visitInsn(ISUB);
+				mv.visitLdcInsn(new Integer(-1));
+				mv.visitInsn(IMUL);
 				break;
 
 			default:
@@ -389,6 +405,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		String fieldType = statement_Out.getDec().newType == Type.INTEGER ? "I" : "Z";
 		mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
 		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
+		CodeGenUtils.genLogTOS(GRADE, mv, statement_Out.getDec().newType);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "("+fieldType+")V", false);
 		return null;
 		//TODO: Check invokevirtual
