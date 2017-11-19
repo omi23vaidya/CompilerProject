@@ -206,6 +206,27 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			mv.visitLabel(l8); //TODO: check this opcode
 			break;
 
+		case OP_LT:
+			Label l9 = new Label();
+			Label l10 = new Label();
+			mv.visitJumpInsn(IF_ICMPLT, l9);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l10);
+			mv.visitLabel(l9);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l10); //TODO: check this opcode
+			break;
+
+		case OP_GT:
+			Label l11 = new Label();
+			Label l12 = new Label();
+			mv.visitJumpInsn(IF_ICMPGT, l11);
+			mv.visitLdcInsn(new Boolean(false));
+			mv.visitJumpInsn(GOTO, l12);
+			mv.visitLabel(l11);
+			mv.visitLdcInsn(new Boolean(true));
+			mv.visitLabel(l12); //TODO: check this opcode
+			break;
 
 		case OP_AND:
 			mv.visitInsn(IAND);
@@ -247,23 +268,23 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitExpression_Unary(Expression_Unary expression_Unary, Object arg) throws Exception {
 		// TODO
 		//throw new UnsupportedOperationException();
-		expression_Unary.e.visit(this, arg);
+		expression_Unary.e.visit(this, null);
 
 		switch(expression_Unary.op)
 		{
 			case OP_EXCL:
-				if(expression_Unary.newType == Type.INTEGER)
+				if(expression_Unary.e.newType == Type.INTEGER)
 					mv.visitInsn(INEG);
-				else if(expression_Unary.newType == Type.BOOLEAN)
+				else if(expression_Unary.e.newType == Type.BOOLEAN)
 				{
 					Label l1 = new Label();
 					Label l2 = new Label();
 					mv.visitLdcInsn(new Boolean(true));
 					mv.visitJumpInsn(IF_ICMPEQ, l1);
-					mv.visitLdcInsn(new Boolean(false));
+					mv.visitLdcInsn(new Boolean(true));
 					mv.visitJumpInsn(GOTO, l2);
 					mv.visitLabel(l1);
-					mv.visitLdcInsn(new Boolean(true));
+					mv.visitLdcInsn(new Boolean(false));
 					mv.visitLabel(l2);
 				}
 
@@ -316,7 +337,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		expression_Conditional.trueExpression.visit(this, arg);
 		mv.visitLabel(l2);
 
-		CodeGenUtils.genLogTOS(GRADE, mv, expression_Conditional.trueExpression.getType());
+		//CodeGenUtils.genLogTOS(GRADE, mv, expression_Conditional.trueExpression.getType());
+		//TODO: To be checked....
 		return null;
 	}
 
@@ -424,21 +446,23 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatement_In(Statement_In statement_In, Object arg) throws Exception {
 		// TODO (see comment )
 		//throw new UnsupportedOperationException();
-		String fieldName = statement_In.name;
-
-		statement_In.source.visit(this, arg);
 		if(statement_In.source.newType == Type.INTEGER)
 		{
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
-			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "I");
+			String fieldName = statement_In.name;
+			statement_In.source.visit(this, arg);
+			if(statement_In.getDec().newType == Type.INTEGER)
+			{
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
+				mv.visitFieldInsn(PUTSTATIC, className, fieldName, "I");
+			}
+			else
+			{
+				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "parseBoolean", "(Ljava/lang/String;)Z", false);
+				mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Z");
+			}
 		}
-		else
-		{
-			mv.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "parseBoolean", "(Ljava/lang/String;)Z", false);
-			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Z");
+			return null;
 		}
-		return null;
-	}
 
 
 	/**
@@ -448,16 +472,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatement_Assign(Statement_Assign statement_Assign, Object arg) throws Exception {
 		//TODO  (see comment)
 		//throw new UnsupportedOperationException();
-		if(statement_Assign.e.newType == Type.INTEGER || statement_Assign.e.newType == Type.BOOLEAN)
-		{
-			String fieldType = statement_Assign.e.newType == Type.INTEGER ? "I" : "Z";
-			String fieldName = statement_Assign.lhs.name;
-			if(statement_Assign.lhs.newType == statement_Assign.e.newType)
-			{
-				statement_Assign.e.visit(this, arg);
-				mv.visitFieldInsn(PUTSTATIC, className, fieldName, fieldType);
-			}
-		}
+//		if(statement_Assign.e.newType == Type.INTEGER || statement_Assign.e.newType == Type.BOOLEAN)
+//		{
+//			String fieldType = statement_Assign.e.newType == Type.INTEGER ? "I" : "Z";
+//			String fieldName = statement_Assign.lhs.name;
+//			if(statement_Assign.lhs.newType == statement_Assign.e.newType)
+//			{
+//				statement_Assign.e.visit(this, arg);
+//				mv.visitFieldInsn(PUTSTATIC, className, fieldName, fieldType);
+//			}
+//		}
+//
+		statement_Assign.e.visit(this, arg);
+		statement_Assign.lhs.visit(this, arg);
 		return null;
 	}
 
@@ -469,10 +496,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//TODO  (see comment)
 		//throw new UnsupportedOperationException();
 		String fieldName = lhs.name;
-		if(lhs.newType == Type.INTEGER || lhs.newType == Type.BOOLEAN)
-		{
-			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Ljava/lang/String;");
-		}
+//		if(lhs.newType == Type.INTEGER || lhs.newType == Type.BOOLEAN)
+//		{
+//			mv.visitFieldInsn(PUTSTATIC, className, fieldName, "Ljava/lang/String;");
+//		}
+		String desc = lhs.dec.newType == Type.INTEGER ? "I" : "Z";
+		mv.visitFieldInsn(PUTSTATIC, className, fieldName, desc);
 		return null;
 	}
 
@@ -504,7 +533,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//TODO
 		//throw new UnsupportedOperationException();
 		String fieldName = expression_Ident.name;
-		mv.visitFieldInsn(GETSTATIC, className, fieldName, "Ljava/lang/String;");
+		String fieldType = expression_Ident.newType == Type.INTEGER ? "I" : "Z";
+		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
 		CodeGenUtils.genLogTOS(GRADE, mv, expression_Ident.getType());
 		return null;
 	}
