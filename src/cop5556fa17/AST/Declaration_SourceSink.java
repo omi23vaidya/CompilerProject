@@ -8,9 +8,11 @@ public class Declaration_SourceSink extends Declaration {
 	public final Kind type;
 	public final String name;
 	public final Source source;
+	public Token forTokenType;
 	
 	public Declaration_SourceSink(Token firstToken, Token type, Token name, Source source) {
 		super(firstToken);
+		forTokenType = type;
 		this.type = type.kind;
 		this.name = name.getText();
 		this.source = source;

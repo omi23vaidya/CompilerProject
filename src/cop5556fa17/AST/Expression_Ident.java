@@ -3,7 +3,7 @@
 //import cop5556fa17.Scanner.Token;
 //
 //public class Expression_Ident extends Expression {
-//	
+//
 //	public final String name;
 //
 //	public Expression_Ident(Token firstToken, Token name) {
@@ -52,12 +52,13 @@
 package cop5556fa17.AST;
 
 import cop5556fa17.Scanner.Token;
+import cop5556fa17.TypeUtils.Type;
 
 public class Expression_Ident extends Expression {
-	
+
 	public final String name;
-	
-	
+
+
 
 	public Expression_Ident(Token firstToken, Token ident) {
 		super(firstToken);
@@ -65,6 +66,10 @@ public class Expression_Ident extends Expression {
 	}
 
 
+//	public Type getType()
+//	{
+//		return newType;
+//	}
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws Exception {
@@ -107,5 +112,5 @@ public class Expression_Ident extends Expression {
 		return "Expression_Ident [name=" + name + "]";
 	}
 
-	
+
 }
