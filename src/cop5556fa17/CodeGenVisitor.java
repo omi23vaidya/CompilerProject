@@ -93,7 +93,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		Label mainStart = new Label();
 		mv.visitLabel(mainStart);
 		// if GRADE, generates code to add string to log
-		CodeGenUtils.genLog(GRADE, mv, "entering main");
+		//CodeGenUtils.genLog(GRADE, mv, "entering main");
 
 		// visit decs and statements to add field to class
 		//  and instructions to main method, respectivley
@@ -103,7 +103,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 
 		//generates code to add string to log
-		CodeGenUtils.genLog(GRADE, mv, "leaving main");
+		//CodeGenUtils.genLog(GRADE, mv, "leaving main");
 
 		//adds the required (by the JVM) return statement to main
 		mv.visitInsn(RETURN);
@@ -260,7 +260,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			break;
 		}
 
-		CodeGenUtils.genLogTOS(GRADE, mv, expression_Binary.getType());
+		//CodeGenUtils.genLogTOS(GRADE, mv, expression_Binary.getType());
 		return null;
 	}
 
@@ -303,7 +303,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				break;
 		}
 
-		CodeGenUtils.genLogTOS(GRADE, mv, expression_Unary.getType());
+		//CodeGenUtils.genLogTOS(GRADE, mv, expression_Unary.getType());
 		return null;
 	}
 
@@ -390,7 +390,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// TODO
 		//throw new UnsupportedOperationException();
 		mv.visitLdcInsn(new Integer(expression_IntLit.value));
-		CodeGenUtils.genLogTOS(GRADE, mv, Type.INTEGER);
+		//CodeGenUtils.genLogTOS(GRADE, mv, Type.INTEGER);
 		return null;
 	}
 
@@ -523,7 +523,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		//TODO
 		//throw new UnsupportedOperationException();
 		mv.visitLdcInsn(new Boolean(expression_BooleanLit.value));
-		CodeGenUtils.genLogTOS(GRADE, mv, Type.BOOLEAN);
+		//CodeGenUtils.genLogTOS(GRADE, mv, Type.BOOLEAN);
 		return null;
 	}
 
@@ -535,7 +535,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		String fieldName = expression_Ident.name;
 		String fieldType = expression_Ident.newType == Type.INTEGER ? "I" : "Z";
 		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
-		CodeGenUtils.genLogTOS(GRADE, mv, expression_Ident.getType());
+		//CodeGenUtils.genLogTOS(GRADE, mv, expression_Ident.getType());
 		return null;
 	}
 
