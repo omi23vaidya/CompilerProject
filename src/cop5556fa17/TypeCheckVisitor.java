@@ -541,7 +541,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if(exp!=null)
 			exp.visit(this, arg);
 
-		if(l1.newType == exp.newType)
+		if((l1.newType == exp.newType) || (l1.newType == Type.IMAGE && exp.newType == Type.INTEGER))
 		{
 			statement_Assign.setCartesian(l1.isCartesian);
 		}
