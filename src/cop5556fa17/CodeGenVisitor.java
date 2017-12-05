@@ -668,7 +668,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		{
 			String fieldName = statement_In.name;
 			statement_In.source.visit(this, arg);
-			if(statement_In.getDec().newType == Type.INTEGER)
+			if(statement_In.getDec().newType == Type.INTEGER || statement_In.getDec().newType == null)
 			{
 				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
 				mv.visitFieldInsn(PUTSTATIC, className, fieldName, "I");
@@ -765,7 +765,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 //			}
 
 			statement_Assign.e.visit(this, arg);
-			mv.visitFieldInsn(GETSTATIC, className, statement_Assign.lhs.name, "Ljava/awt/image/BufferedImage;");
+			//mv.visitFieldInsn(GETSTATIC, className, statement_Assign.lhs.name, "Ljava/awt/image/BufferedImage;");
 
 			statement_Assign.lhs.visit(this, arg);
 			mv.visitFieldInsn(GETSTATIC, className, "y", "I");
@@ -800,6 +800,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 		else if(lhs.dec.newType == Type.IMAGE)
 		{
+			mv.visitFieldInsn(GETSTATIC, className, lhs.name, "Ljava/awt/image/BufferedImage;");
 			mv.visitFieldInsn(GETSTATIC, className, "x", "I"); //to load x
 			mv.visitFieldInsn(GETSTATIC, className, "y", "I"); //to load y
 			mv.visitMethodInsn(INVOKESTATIC, "cop5556fa17/ImageSupport", "setPixel", ImageSupport.setPixelSig, false);

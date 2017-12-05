@@ -424,4 +424,324 @@ public void checkConstants() throws Exception{
 	System.out.println("Z=" + 0xFFFFFF);
 	assertEquals(Z + ";256;256;", RuntimeLog.getGlobalString());
 }
+
+@Test
+public void prof1() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g <- @ 0;"
+			+ "g -> SCREEN;\n"
+			+"\nimage[1024,1024] h;\nh[[x,y]] = !g[x,y];h -> SCREEN; \n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(1);
+	BufferedImage img = ImageSupport.readImage(imageFile1, 1024, 1024);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int pixelRef = Z-ImageSupport.getPixel(img, x, y);
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+//below gives error
+@Test
+public void prof2() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g <- @ 0;"
+			+ "g -> SCREEN;\n"
+			+"\nimage[1024,1024] h;\nh[[x,y]] = g[x,y];h -> SCREEN; \n"
+			+"\nimage[1024,1024] average; \naverage[[x,y]] = h[x,y]*3;average -> SCREEN; \n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(2);
+	BufferedImage img = ImageSupport.readImage(imageFile1, 1024, 1024);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int pixelRef = (Z-ImageSupport.getPixel(img, x, y))*3;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+@Test
+public void prof3() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g <- @ 0;"
+			+ "g -> SCREEN;\n"
+			+"\nimage[1024,1024] h;\nh[[x,y]] = Z-g[x,y];h -> SCREEN; \n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(1);
+	BufferedImage img = ImageSupport.readImage(imageFile1, 1024, 1024);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int pixelRef = Z-ImageSupport.getPixel(img, x, y);
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+@Test
+public void prof4() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g <- @ 0;"
+			+ "g -> SCREEN;\n"
+			+"\nimage[1024,1024] h;"
+			+ "\nh[[x,y]] = (g[x,y] > Z/2) ? Z-g[x,y] : g[x,y];"
+			+ "h -> SCREEN; \n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(1);
+	BufferedImage img = ImageSupport.readImage(imageFile1, 1024, 1024);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int g =  ImageSupport.getPixel(img, x, y);
+			int pixelRef = (g > Z/2) ? Z-g : g;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+@Test
+public void prof5() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[512,512] g; \n"
+			+ "g[[x, y]] = 150;"
+			+ "g -> SCREEN;\n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 512; y++) {
+		for (int x = 0; x < 512; x++) {
+			int pixelRef = 150;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+
+@Test
+public void prof6() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[512,512] g; \n"
+			+ "g[[x, y]] = (x%7>1)?(y%7>1)? 0 : Z : Z;"
+			+ "g -> SCREEN;\n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 512; y++) {
+		for (int x = 0; x < 512; x++) {
+			int pixelRef = (x%7>1)?(y%7>1)? 0 : Z : Z;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+@Test
+public void prof7() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[512,512] g; \n"
+			+ "g[[x, y]] = 	(x%20>1)?(y%20>1)? 0 : Z : Z;"
+			+ "g -> SCREEN;\n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 512; y++) {
+		for (int x = 0; x < 512; x++) {
+			int pixelRef = (x%20>1)?(y%20>1)? 0 : Z : Z;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+
+@Test
+public void prof8() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[512,512] g; \n"
+			+ "g[[x, y]] = 	(x%20>1)?(y%20>1)? 16711680 : x/2+ 65280 : x/2+ 65280;"
+			+ "g -> SCREEN;\n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 512; y++) {
+		for (int x = 0; x < 512; x++) {
+			int pixelRef = (x%20>1)?(y%20>1)? 16711680 : x/2+ 65280 : x/2+ 65280;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
+@Test
+public void prof9() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen4";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g[[r,a]] = r*100;"
+			+ "g -> SCREEN;\n"
+			;
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int pixelRef = RuntimeFunctions.polar_r(x, y)*100;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+			assertEquals(pixelRef, pixel);
+			//System.out.println(pixelRef+" "+pixel);
+		}
+	}
+	keepFrame();
+
+}
+
+@Test
+public void prof10() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen4";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g[[r,a]] = cart_x[r,a];"
+			+ "g -> SCREEN;\n"
+			;
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int r = RuntimeFunctions.polar_r(x, y);
+			int a = RuntimeFunctions.polar_a(x, y);
+			int pixelRef = RuntimeFunctions.cart_x(r, a);
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+			assertEquals(pixelRef, pixel);
+			//System.out.println(pixelRef+" "+pixel);
+		}
+	}
+	keepFrame();
+
+}
+
+@Test
+public void prof11() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "imageGen3";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n"
+			+ "g <- @ 0;"
+			+ "g -> SCREEN;\n"
+			+"\nimage[1024,1024] h;"
+			+ "\nh[[x,y]] = g[x,Y-y];"
+			+ "h -> SCREEN; \n"
+			;
+
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage loggedImage = RuntimeLog.globalImageLog.get(1);
+	BufferedImage img = ImageSupport.readImage(imageFile1, 1024, 1024);
+	for(int y = 0; y < 1024; y++) {
+		for (int x = 0; x < 1024; x++) {
+			int g =  ImageSupport.getPixel(img, x, 1024-y);
+			int pixelRef = g;
+			int pixel = ImageSupport.getPixel(loggedImage, x,y);
+
+			assertEquals(pixelRef, pixel);
+		}
+	}
+	keepFrame();
+}
+
 }
