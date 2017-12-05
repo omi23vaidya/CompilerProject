@@ -664,11 +664,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitStatement_In(Statement_In statement_In, Object arg) throws Exception {
 		// TODO (see comment )
 		//throw new UnsupportedOperationException();
-		if(statement_In.source.newType == Type.INTEGER)
+		if(statement_In.source.newType == Type.INTEGER  || statement_In.source.newType == null)
 		{
 			String fieldName = statement_In.name;
 			statement_In.source.visit(this, arg);
-			if(statement_In.getDec().newType == Type.INTEGER || statement_In.getDec().newType == null)
+			if(statement_In.getDec().newType == Type.INTEGER)
 			{
 				mv.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "parseInt", "(Ljava/lang/String;)I", false);
 				mv.visitFieldInsn(PUTSTATIC, className, fieldName, "I");
