@@ -299,7 +299,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		{
 			case OP_EXCL:
 				if(expression_Unary.e.newType == Type.INTEGER)
-					mv.visitInsn(INEG);
+				{
+					//mv.visitInsn(INEG);
+					mv.visitLdcInsn(Integer.MAX_VALUE);
+					mv.visitInsn(IXOR);
+				}
 				else if(expression_Unary.e.newType == Type.BOOLEAN)
 				{
 					Label l1 = new Label();
@@ -442,9 +446,10 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitSource_StringLiteral(Source_StringLiteral source_StringLiteral, Object arg) throws Exception {
 		// TODO HW6
 		//throw new UnsupportedOperationException();
-		String fieldName = source_StringLiteral.fileOrUrl;
-		String fieldType = "Ljava/lang/String;";
-		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
+//		String fieldName = source_StringLiteral.fileOrUrl;
+//		String fieldType = "Ljava/lang/String;";
+//		mv.visitFieldInsn(GETSTATIC, className, fieldName, fieldType);
+		mv.visitLdcInsn(new String(source_StringLiteral.fileOrUrl));
 		return null;
 	}
 
