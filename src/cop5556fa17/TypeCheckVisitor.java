@@ -357,6 +357,7 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if(pn != null)
 			pn.visit(this, arg);
 
+		//TODO: CHANGE HERE - 2  lines
 		source_CommandLineParam.newType = null;
 		if(source_CommandLineParam.paramNum.newType == Type.INTEGER)
 		{
@@ -402,7 +403,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 		{
 			symbolTableObj.insert(declaration_SourceSink.name, declaration_SourceSink);
 			declaration_SourceSink.newType = TypeUtils.getType(declaration_SourceSink.forTokenType);
-			if(sr.newType != declaration_SourceSink.newType && sr.newType !=  null)
+			//TODO: CHANGE next line
+			if(sr.newType != declaration_SourceSink.newType && sr.newType != null)
 			{
 				throw new SemanticException(declaration_SourceSink.firstToken,
 						"Error in visitDeclaration_SourceSink in 2nd requirement");
