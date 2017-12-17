@@ -415,6 +415,34 @@ public class CodeGenVisitorTest implements ImageResources{
 		keepFrame();
 	}
 
+	@Test
+	public void image7() throws Exception{
+		String prog = "image7";
+		String input = prog
+				+"\nimage[1024,1024] g; "
+				+ "\n\nimage[1024,1024] h;"
+				+ "\ng <- @ 0;"
+				+ "\n file f = @ 1; "
+				+ "\ng -> SCREEN;"
+				+ "\nh[[x,y]] =  g[r,a];"
+				+ "h -> SCREEN; "
+    			+ "\nh -> f;"
+				;
+		byte[] bytecode = genCode(input);
+		String[] commandLineArgs = {imageFile1,imageFile2};
+		//runCode(prog, bytecode, commandLineArgs);
+        runCode(prog, bytecode, commandLineArgs);
+
+		BufferedImage loggedImage0 = RuntimeLog.globalImageLog.get(0);
+		BufferedImage loggedImage1 = RuntimeLog.globalImageLog.get(1);
+		assertTrue(ImageSupport.compareImages(loggedImage1, loggedImage0 ));
+
+//		BufferedImage loggedImage0 = RuntimeLog.globalImageLog.get(0);
+//		BufferedImage loggedImage1 = RuntimeLog.globalImageLog.get(1);
+
+//		assertTrue(ImageSupport.compareImages(loggedImage1, loggedImage0 ));
+		keepFrame();
+	}
 
 @Test
 public void checkConstants() throws Exception{
@@ -429,6 +457,32 @@ public void checkConstants() throws Exception{
 	runCode(prog, bytecode, commandLineArgs);
 	System.out.println("Z=" + 0xFFFFFF);
 	assertEquals(Z + ";256;256;", RuntimeLog.getGlobalString());
+}
+
+@Test
+public void image7_2() throws Exception{
+	devel = false;
+	grade = true;
+	String prog = "image7";
+	String input = prog
+			+ "\nimage[1024,1024] g; \n\nimage[1024,1024] h; \ng <- @ 0;\n file f = @ 1; \ng -> SCREEN;\nh[[r,a]] =  g[r,a];h -> SCREEN; \nh -> f;\n"
+			;
+	byte[] bytecode = genCode(input);
+	String[] commandLineArgs = {imageFile1, imageFile2};
+	runCode(prog, bytecode, commandLineArgs);
+
+	BufferedImage h = RuntimeLog.globalImageLog.get(1);
+	BufferedImage g = RuntimeLog.globalImageLog.get(0);
+	for(int y = 0; y < 1024; y++) {
+		   for (int x = 0; x < 1024; x++) {
+		      int x1 = RuntimeFunctions.cart_x(RuntimeFunctions.polar_r(x, y), RuntimeFunctions.polar_a(x, y));
+		      int y1 = RuntimeFunctions.cart_y(RuntimeFunctions.polar_r(x, y), RuntimeFunctions.polar_a(x, y));
+		      int pixelRef = ImageSupport.getPixel(g, x1,y1);
+		      int pixel = ImageSupport.getPixel(h, x,y);
+		      assertEquals(pixelRef, pixel);
+		   }
+		}
+	keepFrame();
 }
 
 @Test
