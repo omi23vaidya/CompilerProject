@@ -3,12 +3,12 @@ package cop5556fa17.AST;
 import cop5556fa17.Scanner.Token;
 
 public class Statement_In extends Statement {
-	
+
 	public final String name;
 	public final Source source;
-	
+
 	Declaration dec;
-	
+
 
 	public Declaration getDec() {
 		return dec;
@@ -70,7 +70,7 @@ public class Statement_In extends Statement {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-	
+
+
 
 }

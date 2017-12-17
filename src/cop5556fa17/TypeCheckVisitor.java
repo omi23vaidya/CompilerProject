@@ -357,8 +357,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if(pn != null)
 			pn.visit(this, arg);
 
-		source_CommandLineParam.newType = pn.newType;
-		if(source_CommandLineParam.newType == Type.INTEGER)
+		//TODO: CHANGE HERE - 2  lines
+		source_CommandLineParam.newType = null;
+		if(source_CommandLineParam.paramNum.newType == Type.INTEGER)
 		{
 			;//correct condition
 		}
@@ -402,7 +403,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 		{
 			symbolTableObj.insert(declaration_SourceSink.name, declaration_SourceSink);
 			declaration_SourceSink.newType = TypeUtils.getType(declaration_SourceSink.forTokenType);
-			if(sr.newType != declaration_SourceSink.newType)
+			//TODO: CHANGE next line
+			if(sr.newType != declaration_SourceSink.newType && sr.newType != null)
 			{
 				throw new SemanticException(declaration_SourceSink.firstToken,
 						"Error in visitDeclaration_SourceSink in 2nd requirement");
@@ -541,7 +543,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 		if(exp!=null)
 			exp.visit(this, arg);
 
-		if(l1.newType == exp.newType)
+
+		if(((l1.newType == exp.newType) && (l1.newType != Type.IMAGE)) || (l1.newType == Type.IMAGE && exp.newType == Type.INTEGER))
 		{
 			statement_Assign.setCartesian(l1.isCartesian);
 		}

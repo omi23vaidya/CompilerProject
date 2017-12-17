@@ -278,8 +278,8 @@ public class Parser {
 		//op = t;
 		check(Kind.COMMA);
 		
-		e2 = new Expression_PredefinedName(t, Kind.KW_A);
-		check(Kind.KW_A);
+		e2 = new Expression_PredefinedName(t, Kind.KW_a);
+		check(Kind.KW_a);
 		
 		Index i = new Index(firstToken, e1, e2); //Doubt hw3 -- firstToken??
 		return i;
